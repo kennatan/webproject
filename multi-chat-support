@@ -1,0 +1,6 @@
+multi-chat-support/
+│
+├── public/
+│   └── index.html        ← 放 HTML 程式碼
+├── server.js             ← 放 Node.js 後端程式碼
+├── package.json          ← 放套件描述

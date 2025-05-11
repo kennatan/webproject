@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>客服系統</title>
+</head>
+<body>
+  <h2>請選擇身份</h2>
+  <button onclick="register('agent')">我是客服</button>
+  <button onclick="register('client')">我是客戶</button>
+
+  <div id="chat" style="display:none;">
+    <h3>聊天視窗</h3>
+    <select id="targetSelect"></select>
+    <div id="messages" style="border:1px solid #ccc; height:200px; overflow:auto;"></div>
+    <input type="text" id="input" placeholder="輸入訊息...">
+    <button onclick="send()">送出</button>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    let targetId = null;
+    const role = {};
+
+    function register(roleType) {
+      role.type = roleType;
+      socket.emit('register', roleType);
+      document.getElementById('chat').style.display = 'block';
+    }
+
+    socket.on('new_client', (id) => {
+      if (role.type === 'agent') {
+        const option = document.createElement('option');
+        option.value = id;
+        option.text = '客戶 ' + id;
+        document.getElementById('targetSelect').appendChild(option);
+      }
+    });
+
+    socket.on('message', ({ from, message }) => {
+      const msgBox = document.getElementById('messages');
+      const p = document.createElement('p');
+      p.textContent = `從 ${from}：${message}`;
+      msgBox.appendChild(p);
+    });
+
+    function send() {
+      const msg = document.getElementById('input').value;
+      if (!msg) return;
+
+      if (!targetId) {
+        targetId = document.getElementById('targetSelect').value;
+      }
+
+      socket.emit('message', { to: targetId, message: msg });
+
+      const msgBox = document.getElementById('messages');
+      const p = document.createElement('p');
+      p.textContent = `你：${msg}`;
+      msgBox.appendChild(p);
+
+      document.getElementById('input').value = '';
+    }
+  </script>
+</body>
+</html>
